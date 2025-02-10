@@ -9,8 +9,8 @@
     "lint": "ng lint",
     "e2e": "ng e2e",
     "deploy": "yarn build:library && cd ./dist/angular-cc-library && npm publish",
-    "precommit": "lint-staged",
-    "prepare": "yarn build:library"
+    "precommit": "ng test",
+    "prepare": "husky"
   },
   "dependencies": {
     "@angular/common": "^19.1.5",
