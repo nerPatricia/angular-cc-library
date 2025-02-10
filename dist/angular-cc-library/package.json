@@ -1,0 +1,41 @@
+{
+  "name": "angular-cc-library",
+  "version": "3.5.0",
+  "description": "angular credit card library",
+  "keywords": [
+    "angular",
+    "validate",
+    "validation",
+    "credit card",
+    "credit card format"
+  ],
+  "author": "nogorilla <gabriel.smith010@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/timofei-iatsenko/angular-cc-library/issues"
+  },
+  "homepage": "https://github.com/timofei-iatsenko/angular-cc-library#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/timofei-iatsenko/angular-cc-library.git"
+  },
+  "dependencies": {
+    "tslib": "^2.8.1"
+  },
+  "peerDependencies": {
+    "@angular/common": "^19.1.4",
+    "@angular/core": "^19.1.4"
+  },
+  "module": "fesm2022/angular-cc-library.mjs",
+  "typings": "index.d.ts",
+  "exports": {
+    "./package.json": {
+      "default": "./package.json"
+    },
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./fesm2022/angular-cc-library.mjs"
+    }
+  },
+  "sideEffects": false
+}
