@@ -1,6 +1,6 @@
 {
   "name": "angular-cc-library",
-  "version": "3.7.0",
+  "version": "3.7.1",
   "scripts": {
     "run:demo": "ng serve example",
     "build:demo": "ng build example --configuration production",
@@ -8,7 +8,7 @@
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e",
-    "deploy": "yarn build:library && cd ./dist/angular-cc-library && npm publish",
+    "deploy": "npm run build:library && cd ./dist/angular-cc-library && npm publish",
     "precommit": "lint-staged",
     "prepare": "husky"
   },
