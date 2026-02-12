@@ -4,6 +4,7 @@
     "baseUrl": "./",
     "outDir": "./dist/out-tsc",
     "noImplicitAny": true,
+    "esModuleInterop": true,
     "noImplicitReturns": false,
     "noImplicitThis": true,
     "noUnusedParameters": true,
@@ -12,16 +13,11 @@
     "strictNullChecks": false,
     "sourceMap": true,
     "declaration": false,
-    "downlevelIteration": true,
     "experimentalDecorators": true,
     "module": "es2020",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "importHelpers": true,
     "target": "ES2022",
-    "lib": [
-      "es2018",
-      "dom"
-    ],
     "paths": {
       "angular-cc-library/*": [
         "../angular-cc-library/src/*"

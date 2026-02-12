@@ -135,9 +135,27 @@ import { CreditCardValidators } from "angular-cc-library";
   selector: "app",
   template: `
     <form #demoForm="ngForm" (ngSubmit)="onSubmit(demoForm)" novalidate>
-        <input id="cc-number" formControlName="creditCard" type="tel" autocomplete="cc-number" ccNumber>
-        <input id="cc-exp-date" formControlName="expirationDate" type="tel" autocomplete="cc-exp" ccExp>
-        <input id="cc-cvc" formControlName="cvc" type="tel" autocomplete="off" ccCVC>
+      <input
+        id="cc-number"
+        formControlName="creditCard"
+        type="tel"
+        autocomplete="cc-number"
+        ccNumber
+      />
+      <input
+        id="cc-exp-date"
+        formControlName="expirationDate"
+        type="tel"
+        autocomplete="cc-exp"
+        ccExp
+      />
+      <input
+        id="cc-cvc"
+        formControlName="cvc"
+        type="tel"
+        autocomplete="off"
+        ccCVC
+      />
     </form>
   `,
 })
