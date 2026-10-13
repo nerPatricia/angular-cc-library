@@ -193,6 +193,39 @@ Based on Stripe's [jquery.payment](https://github.com/stripe/jquery.payment) plu
 
 MIT
 
+# Publishing
+
+Releases of `@nerpatricia/angular-cc-library` are **automatic**. Every push/merge to `master` runs
+[`.github/workflows/publish.yml`](.github/workflows/publish.yml). The workflow:
+
+1. Analyzes the [Conventional Commits](https://www.conventionalcommits.org/) since the last `v*` tag
+   (via `scripts/next-release.mjs`, which uses `semantic-release` in dry-run mode only for the analysis).
+2. Runs lint and tests. If either fails, nothing is bumped or published.
+3. Bumps `package.json` and `projects/angular-cc-library/package.json` to the same version, then builds the library.
+4. Publishes `dist/angular-cc-library` to npm with provenance, using npm Trusted Publishing (OIDC, no token).
+   The publish step is skipped if that version is already on npm.
+5. Only after a successful publish, commits `chore(release): publica versão X.Y.Z [skip ci]`, pushes the
+   commit and the `vX.Y.Z` tag, and creates a GitHub Release with generated notes.
+
+| Commit                                                    | Release     |
+| --------------------------------------------------------- | ----------- |
+| `feat!: ...` / `fix!: ...` or `BREAKING CHANGE:` in body   | **major**   |
+| `feat: ...`                                               | **minor**   |
+| `fix: ...`, `perf: ...`, reverts                          | **patch**   |
+| `docs`, `chore`, `ci`, `test`, `refactor`, `build`, `style` | no release  |
+
+Only the type prefix matters. Descriptions can be in any language (e.g. `fix(mask): corrige máscara`).
+
+**Forcing a release:** go to *Actions → publish → Run workflow* on `master` and set `release_type` to `patch`,
+`minor` or `major`. `auto` uses the commit analysis.
+
+**Dry run locally** (never publishes): `RELEASE_BRANCH=master node scripts/next-release.mjs`. If no `v*`
+tags exist, the script creates the baseline tag locally.
+
+**One-time npm setup (Trusted Publisher):** on npmjs.com open the package →
+*Settings → Trusted Publisher → GitHub Actions*, then set organization/user `nerPatricia`, repository
+`angular-cc-library`, workflow filename `publish.yml` and leave environment empty. No `NPM_TOKEN` secret is needed.
+
 [badge-downloads]: https://img.shields.io/npm/dw/angular-cc-library.svg
 [badge-version]: https://img.shields.io/npm/v/angular-cc-library.svg
 [package]: https://www.npmjs.com/package/angular-cc-library
