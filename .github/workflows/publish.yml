@@ -65,7 +65,7 @@ jobs:
 
       - name: Nothing to release
         if: steps.next.outputs.release != 'true'
-        run: echo "::notice::No feat/fix/perf/breaking commits since the last tag. Skipping publish."
+        run: echo "::notice::No new commits since the last tag. Skipping publish."
 
       - name: Check if version already exists on npm
         id: npm

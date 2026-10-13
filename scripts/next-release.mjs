@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 // Determines the next release version from Conventional Commits since the last v* tag.
+// Any new commit produces a release: breaking → major, feat → minor, everything else → patch.
 // Uses semantic-release in dry-run mode ONLY for analysis; publishing, committing and
 // tagging are done by .github/workflows/publish.yml after a successful npm publish.
 //
@@ -62,7 +63,16 @@ if (force) {
     Object.assign(outputs, { release: 'true', type, version, tag: gitTag });
     log(`Next release: ${version} (${type}) since ${result.lastRelease.gitTag || 'beginning'}`);
   } else {
-    log('No release-worthy commits (feat, fix, perf or breaking change). Nothing to publish.');
+    // Every push releases: commits without feat/fix/perf/breaking (docs, chore, merges...) fall back to patch.
+    const from = lastTag();
+    const pending = Number(git('rev-list', '--count', `${from}..HEAD`));
+    if (pending > 0) {
+      const version = increment(from.replace(/^v/, ''), 'patch');
+      Object.assign(outputs, { release: 'true', type: 'patch', version, tag: `v${version}` });
+      log(`${pending} commit(s) since ${from} without feat/fix/perf/breaking. Falling back to patch: ${version}`);
+    } else {
+      log(`No commits since ${from}. Nothing to publish.`);
+    }
   }
 }
 
