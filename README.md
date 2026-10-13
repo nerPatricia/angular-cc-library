@@ -207,12 +207,13 @@ Releases of `@nerpatricia/angular-cc-library` are **automatic**. Every push/merg
 5. Only after a successful publish, commits `chore(release): publica versão X.Y.Z [skip ci]`, pushes the
    commit and the `vX.Y.Z` tag, and creates a GitHub Release with generated notes.
 
-| Commit                                                    | Release     |
-| --------------------------------------------------------- | ----------- |
-| `feat!: ...` / `fix!: ...` or `BREAKING CHANGE:` in body   | **major**   |
-| `feat: ...`                                               | **minor**   |
-| `fix: ...`, `perf: ...`, reverts                          | **patch**   |
-| `docs`, `chore`, `ci`, `test`, `refactor`, `build`, `style` | no release  |
+Every push to `master` with new commits since the last tag produces a release. The highest bump wins:
+
+| Commits since last tag                                     | Release     |
+| ---------------------------------------------------------- | ----------- |
+| `feat!: ...` / `fix!: ...` or `BREAKING CHANGE:` in body    | **major**   |
+| `feat: ...`                                                | **minor**   |
+| anything else (`fix`, `perf`, `docs`, `chore`, `ci`, `test`, `refactor`, `build`, merges...) | **patch** |
 
 Only the type prefix matters. Descriptions can be in any language (e.g. `fix(mask): corrige máscara`).
 
