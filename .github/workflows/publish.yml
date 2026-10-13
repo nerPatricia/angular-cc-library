@@ -1,0 +1,128 @@
+name: publish
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: 'Force a release type (auto = derive from Conventional Commits)'
+        type: choice
+        default: auto
+        options: [auto, patch, minor, major]
+
+concurrency:
+  group: publish-npm
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  id-token: write
+
+env:
+  PACKAGE_NAME: '@nerpatricia/angular-cc-library'
+  LIB_DIR: projects/angular-cc-library
+  DIST_DIR: dist/angular-cc-library
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    if: >-
+      github.ref == 'refs/heads/master' &&
+      !contains(github.event.head_commit.message, '[skip ci]') &&
+      !startsWith(github.event.head_commit.message, 'chore(release):')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Latest master tip (not the triggering SHA) so queued runs see previous release commits/tags.
+          ref: master
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.22.3'
+          cache: yarn
+          registry-url: https://registry.npmjs.org
+
+      - name: Update npm (trusted publishing requires >= 11.5.1)
+        run: npm install -g npm@latest && npm --version
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Determine next version
+        id: next
+        run: node scripts/next-release.mjs
+        env:
+          RELEASE_BRANCH: master
+          FORCE_RELEASE: ${{ github.event.inputs.release_type != 'auto' && github.event.inputs.release_type || '' }}
+
+      - name: Push baseline tag
+        if: steps.next.outputs.baseline_tag != ''
+        run: git push origin "refs/tags/${{ steps.next.outputs.baseline_tag }}"
+
+      - name: Nothing to release
+        if: steps.next.outputs.release != 'true'
+        run: echo "::notice::No feat/fix/perf/breaking commits since the last tag. Skipping publish."
+
+      - name: Check if version already exists on npm
+        id: npm
+        if: steps.next.outputs.release == 'true'
+        run: |
+          if npm view "${PACKAGE_NAME}@${{ steps.next.outputs.version }}" version >/dev/null 2>&1; then
+            echo "::warning::${PACKAGE_NAME}@${{ steps.next.outputs.version }} already published. Skipping npm publish."
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Lint
+        if: steps.next.outputs.release == 'true'
+        run: yarn lint
+
+      - name: Test
+        if: steps.next.outputs.release == 'true'
+        run: yarn test --ci
+        env:
+          CI: true
+
+      - name: Bump version (root + library)
+        if: steps.next.outputs.release == 'true'
+        run: |
+          VERSION="${{ steps.next.outputs.version }}"
+          npm version "$VERSION" --no-git-tag-version --allow-same-version
+          npm version "$VERSION" --no-git-tag-version --allow-same-version --prefix "$LIB_DIR"
+
+      - name: Build library
+        if: steps.next.outputs.release == 'true'
+        run: |
+          yarn build:library
+          test "$(node -p "require('./${DIST_DIR}/package.json').version")" = "${{ steps.next.outputs.version }}"
+
+      - name: Publish to npm (Trusted Publishing / OIDC)
+        if: steps.next.outputs.release == 'true' && steps.npm.outputs.exists != 'true'
+        working-directory: ${{ env.DIST_DIR }}
+        run: npm publish --provenance --access public
+
+      - name: Commit, tag and push release
+        if: steps.next.outputs.release == 'true'
+        run: |
+          VERSION="${{ steps.next.outputs.version }}"
+          TAG="${{ steps.next.outputs.tag }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json "$LIB_DIR/package.json"
+          git commit --no-verify -m "chore(release): publica versão ${VERSION} [skip ci]"
+          git pull --rebase --no-verify origin master
+          git tag -a "$TAG" -m "$TAG"
+          git push --atomic origin HEAD:refs/heads/master "refs/tags/${TAG}"
+
+      - name: Create GitHub Release
+        if: steps.next.outputs.release == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ steps.next.outputs.tag }}"
+          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --generate-notes --verify-tag --title "$TAG"
